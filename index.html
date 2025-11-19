@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forex & Market Session Clock</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d1117">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.light { background: #f0f0f0; color: #000000; }
+    body.dark { background: #0d1117; color: #ffffff; }
+
+    h1 { font-size: 1.6rem; text-align: center; margin-bottom: 20px; }
+    .session { padding: 15px; border-radius: 12px; margin-bottom: 15px; transition: background 0.3s; }
+    body.light .session { background: #ffffff; border: 1px solid #ccc; }
+    body.dark .session { background: #161b22; }
+
+    .title { font-size: 1.2rem; font-weight: bold; margin-bottom: 8px; }
+    .time { font-size: 1rem; margin-bottom: 6px; color: #58a6ff; }
+    .status { font-size: 1rem; font-weight: bold; margin-bottom: 4px; }
+    .countdown { font-size: 1rem; font-weight: bold; color: #c9d1d9; }
+
+    .toggle { display: block; margin: 0 auto 20px; padding: 10px 20px; cursor: pointer; border-radius: 8px; border: none; font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <button class="toggle" id="toggleTheme">Toggle Light/Dark Mode</button>
+  <h1>Forex & Market Session Clock</h1>
+
+  <div class="session" id="tokyo">
+    <div class="title">Tokyo Open</div>
+    <div class="time" id="tokyoTime">02:00 GMT+2</div>
+    <div class="status" id="tokyoStatus"></div>
+    <div class="countdown" id="c_tokyo">Loading...</div>
+  </div>
+
+  <div class="session" id="london">
+    <div class="title">London Open</div>
+    <div class="time" id="londonTime">10:00 GMT+2</div>
+    <div class="status" id="londonStatus"></div>
+    <div class="countdown" id="c_london">Loading...</div>
+  </div>
+
+  <div class="session" id="nyfx">
+    <div class="title">New York FX Open</div>
+    <div class="time" id="nyfxTime">15:00 GMT+2</div>
+    <div class="status" id="nyfxStatus"></div>
+    <div class="countdown" id="c_nyfx">Loading...</div>
+  </div>
+
+  <div class="session" id="nyse">
+    <div class="title">NYSE Open</div>
+    <div class="time" id="nyseTime">16:30 GMT+2</div>
+    <div class="status" id="nyseStatus"></div>
+    <div class="countdown" id="c_nyse">Loading...</div>
+  </div>
+
+  <div class="session" id="sydney">
+    <div class="title">Sydney Open</div>
+    <div class="time" id="sydneyTime">23:00 GMT+2</div>
+    <div class="status" id="sydneyStatus"></div>
+    <div class="countdown" id="c_sydney">Loading...</div>
+  </div>
+
+  <script>
+    const sessions = [
+      { id: 'tokyo', hour: 2, minute: 0 },
+      { id: 'london', hour: 10, minute: 0 },
+      { id: 'nyfx', hour: 15, minute: 0 },
+      { id: 'nyse', hour: 16, minute: 30 },
+      { id: 'sydney', hour: 23, minute: 0 }
+    ];
+
+    function updateCountdown(session) {
+      const now = new Date();
+      let target = new Date();
+      target.setHours(session.hour, session.minute, 0, 0);
+      if (now > target) target.setDate(target.getDate() + 1);
+      const diff = target - now;
+      const hrs = Math.floor(diff / 1000 / 60 / 60);
+      const mins = Math.floor((diff / 1000 / 60) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+      document.getElementById('c_' + session.id).textContent = `${hrs}h ${mins}m ${secs}s left`;
+      document.getElementById(session.id + 'Status').textContent = now >= new Date(target - diff) && now < target ? 'OPEN' : 'CLOSED';
+    }
+
+    function loop() { sessions.forEach(updateCountdown); requestAnimationFrame(loop); }
+    loop();
+
+    const toggle = document.getElementById('toggleTheme');
+    toggle.addEventListener('click', () => { document.body.classList.toggle('light'); document.body.classList.toggle('dark'); });
+    document.body.classList.add('dark');
+
+    // PWA install prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; toggle.textContent = 'Install App'; });
+    toggle.addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); const choiceResult = await deferredPrompt.userChoice; deferredPrompt = null; toggle.textContent = 'Toggle Light/Dark Mode'; } });
+  </script>
+</body>
+</html>
